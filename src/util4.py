@@ -184,10 +184,7 @@ class Module(nn.Module, HyperParameters):
     def validation_step(self, batch):
         l = self.loss(self(*batch[:-1]), batch[-1])
         self.plot('loss', l, train=False)
-
-    def configure_optimizers(self):
-        raise NotImplementedError
-
+        
     def configure_optimizers(self):
         """Defined in :numref:`sec_classification`"""
         return torch.optim.SGD(self.parameters(), lr=self.lr)
