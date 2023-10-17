@@ -35,45 +35,6 @@ to = lambda x, *args, **kwargs: x.to(*args, **kwargs)
 def use_svg_display():
     """Use the svg format to display a plot in Jupyter."""
     backend_inline.set_matplotlib_formats('svg')
-
-def set_figsize(figsize=(3.5, 2.5)):
-    """Set the figure size for matplotlib."""
-    use_svg_display()
-    plt.rcParams['figure.figsize'] = figsize
-
-def set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend):
-    """Set the axes for matplotlib."""
-    axes.set_xlabel(xlabel), axes.set_ylabel(ylabel)
-    axes.set_xscale(xscale), axes.set_yscale(yscale)
-    axes.set_xlim(xlim),     axes.set_ylim(ylim)
-    if legend:
-        axes.legend(legend)
-    axes.grid()
-
-def plot(X, Y=None, xlabel=None, ylabel=None, legend=[], xlim=None,
-        ylim=None, xscale='linear', yscale='linear',
-        fmts=('-', 'm--', 'g-.', 'r:'), figsize=(3.5, 2.5), axes=None):
-    """Plot data points."""
-
-    def has_one_axis(X):  # True if X (tensor or list) has 1 axis
-        return (hasattr(X, "ndim") and X.ndim == 1 or isinstance(X, list)
-                and not hasattr(X[0], "__len__"))
-
-    if has_one_axis(X): X = [X]
-    if Y is None:
-        X, Y = [[]] * len(X), X
-    elif has_one_axis(Y):
-        Y = [Y]
-    if len(X) != len(Y):
-        X = X * len(Y)
-
-    set_figsize(figsize)
-    if axes is None:
-        axes = plt.gca()
-    axes.cla()
-    for x, y, fmt in zip(X, Y, fmts):
-        axes.plot(x,y,fmt) if len(x) else axes.plot(y,fmt)
-    set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend)
     
 def cpu():
     """Get the CPU device.
@@ -93,6 +54,24 @@ def num_gpus():
     Defined in :numref:`sec_use_gpu`"""
     return torch.cuda.device_count()
 
+def show_images(imgs, num_rows, num_cols, titles=None, scale=1.5):
+    """Plot a list of images.
+
+    Defined in :numref:`sec_utils`"""
+    figsize = (num_cols * scale, num_rows * scale)
+    _, axes = plt.subplots(num_rows, num_cols, figsize=figsize)
+    axes = axes.flatten()
+    for i, (ax, img) in enumerate(zip(axes, imgs)):
+        try:
+            img = d2l.numpy(img)
+        except:
+            pass
+        ax.imshow(img)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        if titles:
+            ax.set_title(titles[i])
+    return axes
 
 def add_to_class(Class):
     """Register functions as methods in created class."""
@@ -220,9 +199,7 @@ class Module(nn.Module, HyperParameters):
             self.net.apply(init)
 
 class DataModule(HyperParameters):
-    """The base class of data.
-
-    Defined in :numref:`subsec_oo-design-models`"""
+    """The base class of data."""
     def __init__(self, root='data/', num_workers=4):
         self.save_hyperparameters()
 
@@ -234,13 +211,6 @@ class DataModule(HyperParameters):
 
     def val_dataloader(self):
         return self.get_dataloader(train=False)
-
-    def get_tensorloader(self, tensors, train, indices=slice(0, None)):
-        """Defined in :numref:`sec_synthetic-regression-data`"""
-        tensors = tuple(a[indices] for a in tensors)
-        dataset = torch.utils.data.TensorDataset(*tensors)
-        return torch.utils.data.DataLoader(dataset, self.batch_size,
-                                        shuffle=train)
 
 class Trainer(HyperParameters):
     """The base class for training models with data.

@@ -12,7 +12,9 @@ ray[air]==2.7.0
 scikit-learn==1.2.2
 snorkel==0.9.9
 SQLAlchemy==1.4.48
-torch==2.0.0
+torch==2.1.0
+torchaudio==2.1.0
+torchvision==0.16.0
 transformers==4.28.1
 
 # Notebook
